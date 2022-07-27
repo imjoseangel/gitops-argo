@@ -24,6 +24,6 @@ spec:
     repoURL: https://github.com/imjoseangel/gitops-argo.git
     targetRevision: HEAD
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+    automated: {}
+      # prune: true
+      # selfHeal: true
