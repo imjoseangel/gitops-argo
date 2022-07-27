@@ -7,5 +7,3 @@ resources:
   - base/deployment.yaml
   - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 #  - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/ha/install.yaml
-components:
-  - https://github.com/argoproj-labs/argocd-extensions/manifests
