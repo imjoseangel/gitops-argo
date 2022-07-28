@@ -1,6 +1,15 @@
 ---
 namespace: argocd
+
+bases:
+  - base/namespace.yaml
+  - base/secrets-store.yaml
+
 resources:
-  - base/deployment.yaml
-  - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-#  - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/ha/install.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/ha/install.yaml
+  - resources/argocd.yaml
+  - resources/ingress.yaml
+  - resources/argocd-ingress.yaml
+
+patchesStrategicMerge:
+  - patches/argocd-secrets-mounts.yaml
