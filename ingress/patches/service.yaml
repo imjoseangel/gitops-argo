@@ -4,7 +4,5 @@ kind: Service
 metadata:
   name: ingress-nginx-controller
   namespace: ingress-nginx
-  annotations:
-    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
   finalizers:
     - service.kubernetes.io/load-balancer-cleanup
