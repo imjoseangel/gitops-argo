@@ -20,8 +20,8 @@ spec:
             name: argocd-server
             port:
               name: https
-    host: argocd.example.com
+    host: argocd.imjoseangel.eu
   tls:
   - hosts:
-    - argocd.example.com
+    - argocd.imjoseangel.eu
     secretName: ingress-tls-csi
