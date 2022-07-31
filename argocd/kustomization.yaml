@@ -6,7 +6,7 @@ bases:
   - base/secrets-store.yaml
 
 resources:
-  - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/ha/install.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
   - resources/argocd.yaml
   - resources/ingress.yaml
   - config/argocd-repos.yaml
