@@ -17,3 +17,4 @@ data:
         - profile
         - email
   url: https://argocd.imjoseangel.eu
+  kustomize.buildOptions: --enable-helm
