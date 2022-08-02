@@ -1,0 +1,154 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+# Run with helm upgrade --install airflow apache-airflow/airflow -n airflow --create-namespace -f values.yaml --debug
+---
+# Default airflow repository -- overrides all the specific images below
+defaultAirflowRepository: apache/airflow
+
+# Images
+images:
+  airflow:
+    repository: ~
+    tag: ~
+    pullPolicy: IfNotPresent
+  # To avoid images with user code, you can turn this to 'true' and
+  # all the 'run-airflow-migrations' and 'wait-for-airflow-migrations' containers/jobs
+  # will use the images from 'defaultAirflowRepository:defaultAirflowTag' values
+  # to run and wait for DB migrations .
+  useDefaultImageForMigration: false
+  # timeout (in seconds) for airflow-migrations to complete
+  migrationsWaitTimeout: 60
+  pod_template:
+    repository: ~
+    tag: ~
+    pullPolicy: IfNotPresent
+  flower:
+    repository: ~
+    tag: ~
+    pullPolicy: IfNotPresent
+  statsd:
+    repository: apache/airflow
+    tag: airflow-statsd-exporter-2021.04.28-v0.17.0
+    pullPolicy: IfNotPresent
+  redis:
+    repository: redis
+    tag: 6-bullseye
+    pullPolicy: IfNotPresent
+  pgbouncer:
+    repository: apache/airflow
+    tag: airflow-pgbouncer-2021.04.28-1.14.0
+    pullPolicy: IfNotPresent
+  pgbouncerExporter:
+    repository: apache/airflow
+    tag: airflow-pgbouncer-exporter-2021.09.22-0.12.0
+    pullPolicy: IfNotPresent
+  gitSync:
+    repository: k8s.gcr.io/git-sync/git-sync
+    tag: v3.4.0
+    pullPolicy: IfNotPresent
+
+postgresql:
+  enabled: true
+
+data:
+  metadataSecretName: airflow-metadata
+  resultBackendSecretName: airflow-result-backend
+
+triggerer:
+  enabled: false
+
+flower:
+  # Enable flower.
+  # If True, and using CeleryExecutor/CeleryKubernetesExecutor, will deploy flower app.
+  enabled: false
+
+# Git sync
+dags:
+  persistence:
+    # Enable persistent volume for storing dags
+    enabled: false
+    # Volume size for dags
+    size: 1Gi
+    # If using a custom storageClass, pass name here
+    storageClassName:
+    # access mode of the persistent volume
+    accessMode: ReadWriteOnce
+    ## the name of an existing PVC to use
+    existingClaim:
+    ## optional subpath for dag volume mount
+    subPath: ~
+  gitSync:
+    enabled: false
+
+# Fernet key settings
+# Note: fernetKey can only be set during install, not upgrade
+fernetKeySecretName: ~
+
+# Flask secret key for Airflow Webserver: `[webserver] secret_key` in airflow.cfg
+webserverSecretKeySecretName: ~
+
+logs:
+  persistence:
+    # Enable persistent volume for storing logs
+    enabled: true
+    # Volume size for logs
+    size: 100Gi
+    # If using a custom storageClass, pass name here
+    storageClassName:
+    ## the name of an existing PVC to use
+    existingClaim:
+
+
+# Ingress configuration
+ingress:
+  # Enable ingress resource
+  enabled: ~
+
+pgbouncer:
+  # Enable PgBouncer
+  enabled: false
+
+config:
+  secrets:
+    backend: airflow.providers.microsoft.azure.secrets.key_vault.AzureKeyVaultBackend
+    backend_kwargs: '{"connections_prefix": "airflow-connections", "variables_prefix": "airflow-variables", "vault_url": "https://{{ .Values.keyvault }}.vault.azure.net/"}'
+  webserver:
+    authenticate: 'True'
+
+# Extra env 'items' that will be added to the definition of airflow containers
+# a string is expected (can be templated).
+# TODO: difference from `env`? This is a templated string. Probably should template `env` and remove this.
+extraEnv: |
+  - name: AIRFLOW__SCHEDULER__SCHEDULE_AFTER_TASK_EXECUTION
+    value: 'False'
+# eg:
+# extraEnv: |
+#   - name: AIRFLOW__CORE__LOAD_EXAMPLES
+#     value: 'True'
+
+# Extra envFrom 'items' that will be added to the definition of airflow containers
+# A string is expected (can be templated).
+extraEnvFrom: ~
+# eg:
+# extraEnvFrom: |
+#   - secretRef:
+#       name: '{{ .Release.Name }}-airflow-connections'
+#   - configMapRef:
+#       name: '{{ .Release.Name }}-airflow-variables'
+
+keyvault: keyvault
