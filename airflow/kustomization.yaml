@@ -1,0 +1,13 @@
+---
+namespace: airflow
+
+bases:
+  - base/namespace.yaml
+
+helmCharts:
+  - name: airflow
+    repo: https://airflow.apache.org
+    version: 1.6.0
+    releaseName: airflow
+    namespace: airflow
+    valuesFile: resources/values.yaml
