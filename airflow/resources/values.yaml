@@ -66,8 +66,8 @@ postgresql:
   enabled: true
 
 data:
-  metadataSecretName: airflow-metadata
-  resultBackendSecretName: airflow-result-backend
+  metadataSecretName: ~
+  resultBackendSecretName: ~
 
 triggerer:
   enabled: false

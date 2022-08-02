@@ -11,3 +11,5 @@ helmCharts:
     releaseName: airflow
     namespace: airflow
     valuesFile: resources/values.yaml
+
+# run with kubectl kustomize test --enable-helm | kubectl apply -f -
