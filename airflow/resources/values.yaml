@@ -117,7 +117,6 @@ logs:
     ## the name of an existing PVC to use
     existingClaim:
 
-
 # Ingress configuration
 ingress:
   # Enable ingress resource
