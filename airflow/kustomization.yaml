@@ -12,4 +12,4 @@ helmCharts:
     namespace: airflow
     valuesFile: resources/values.yaml
 
-# run with kubectl kustomize test --enable-helm | kubectl apply -f -
+# run with kubectl kustomize airflow --enable-helm | kubectl apply -f -
