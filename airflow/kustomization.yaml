@@ -10,6 +10,26 @@ helmCharts:
     version: 1.6.0
     releaseName: airflow
     namespace: airflow
+    valuesInline:
+      keyvault: mykeyvault
+      hostname: airflow.imjoseangel.eu
     valuesFile: resources/values.yaml
 
 # run with kubectl kustomize airflow --enable-helm | kubectl apply -f -
+
+images:
+  - name: docker.io/bitnami/postgresql
+    newName: docker.io/postgres
+    newTag: 11
+
+patches:
+  - target:
+      kind: Ingress
+      name: airflow-airflow-ingress
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: airflow.imjoseangel.eu
+      - op: replace
+        path: /spec/tls/0/hosts
+        value: ['airflow.imjoseangel.eu']
