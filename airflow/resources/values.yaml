@@ -17,10 +17,6 @@
 
 # Run with helm upgrade --install airflow apache-airflow/airflow -n airflow --create-namespace -f values.yaml --debug
 ---
-# Custom airflow fields
-hostname: &hostname airflow.imjoseangel.eu
-keyvault: keyvault
-
 # Default airflow repository -- overrides all the specific images below
 defaultAirflowRepository: apache/airflow
 
@@ -105,6 +101,81 @@ fernetKeySecretName: ~
 
 # Flask secret key for Airflow Webserver: `[webserver] secret_key` in airflow.cfg
 webserverSecretKeySecretName: ~
+# This string (can be templated) will be mounted into the Airflow Webserver as a custom
+  # webserver_config.py. You can bake a webserver_config.py in to your image instead.
+  webserverConfig:  |
+
+      import os
+      import logging
+
+      from airflow.configuration import conf
+      from airflow.utils.log.logging_mixin import LoggingMixin
+      from flask_appbuilder.security.manager import AUTH_OAUTH
+      from airflow.www.security import AirflowSecurityManager
+
+      SQLALCHEMY_DATABASE_URI = conf.get("core", "SQL_ALCHEMY_CONN")
+      basedir = os.path.abspath(os.path.dirname(__file__))
+
+      AUTH_TYPE = AUTH_OAUTH
+
+      AZURE_TENANT_ID = os.environ.get("AZURE_TENANT_ID")
+      API_BASE = f"https://login.microsoftonline.com/{AZURE_TENANT_ID}/oauth2"
+      ACCESS_TOKEN_URL = f"{API_BASE}/token"
+      AUTHORIZE_URL = f"{API_BASE}/authorize"
+
+      OAUTH_PROVIDERS = [
+        {
+          "name": "azure",
+          "icon": "fa-windows",
+          "token_key": "access_token",
+          "remote_app": {
+              "client_id": os.environ.get("AZURE_CLIENT_ID"),
+              "client_secret":  os.environ.get("AZURE_CLIENT_SECRET"),
+              "api_base_url": API_BASE,
+              "redirect_uri": "https://{{ .Values.hostname }}/oauth-authorized/azure",
+              "client_kwargs": {
+                  "scope": "User.read name preferred_username email profile upn",
+                  "resource": os.environ.get("AZURE_CLIENT_ID"),
+              },
+              "request_token_url": None,
+              "access_token_url": ACCESS_TOKEN_URL,
+              "authorize_url": AUTHORIZE_URL,
+          },
+        }
+      ]
+
+      AUTH_ROLES_MAPPING = {
+          "airflow_user":["User"],
+          "airflow_admin": ["Admin"],
+          "airflow_op": ["Op"],
+          "airflow_viewer": ["Viewer"]
+      }
+
+      AUTH_ROLES_SYNC_AT_LOGIN = True
+      PERMANENT_SESSION_LIFETIME = 1800 # force users to reauth after inactivity period time in seconds
+      AUTH_USER_REGISTRATION_ROLE = "Public"
+      AUTH_USER_REGISTRATION = True
+
+      class AzureCustomSecurity(AirflowSecurityManager, LoggingMixin):
+        def get_oauth_user_info(self, provider, response=None):
+            if provider == "azure":
+                id_token = response["id_token"]
+                self.log.debug(str(id_token))
+                me = self._azure_jwt_token_parse(id_token)
+                parsed_token = {
+                    "name": me["name"],
+                    "email": me["email"],
+                    "first_name": me["given_name"],
+                    "last_name": me["family_name"],
+                    "id": me["oid"],
+                    "username": me["preferred_username"],
+                    "role_keys": me["roles"],
+                }
+                return parsed_token
+            else:
+                return {}
+
+      SECURITY_MANAGER_CLASS = AzureCustomSecurity
 
 logs:
   persistence:
@@ -137,7 +208,7 @@ ingress:
 
     # The hostnames or hosts configuration for the web Ingress
     hosts:
-      - name: *hostname
+      - name: ""
         # configs for web Ingress TLS
         tls:
           # Enable TLS termination for the web Ingress
