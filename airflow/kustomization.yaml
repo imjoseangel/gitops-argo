@@ -21,6 +21,8 @@ images:
   - name: docker.io/bitnami/postgresql
     newName: docker.io/postgres
     newTag: 11
+  - name: apache/airflow
+    newTag: 2.3.0
 
 patches:
   - target:
