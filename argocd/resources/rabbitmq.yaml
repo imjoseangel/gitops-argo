@@ -1,0 +1,56 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: rabbitmq-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  generators:
+  - list:
+      elements:
+        - cluster: in-cluster
+  template:
+    metadata:
+      name: "rabbitmq-operator-{{cluster}}"
+    spec:
+      destination:
+        name: "{{cluster}}"
+      project: default
+      source:
+        path: rabbitmq-operator
+        repoURL: https://github.com/imjoseangel/gitops-argo.git
+        targetRevision: HEAD
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: rabbitmq
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  generators:
+  - list:
+      elements:
+        - cluster: in-cluster
+  template:
+    metadata:
+      name: "rabbitmq-{{cluster}}"
+    spec:
+      destination:
+        name: "{{cluster}}"
+      project: default
+      source:
+        path: rabbitmq
+        repoURL: https://github.com/imjoseangel/gitops-argo.git
+        targetRevision: HEAD
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

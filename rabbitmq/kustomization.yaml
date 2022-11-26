@@ -1,0 +1,9 @@
+---
+namespace: rabbitmq
+
+bases:
+  - base/namespace.yaml
+
+resources:
+  - resources/rabbitmq.yaml
+  - resources/pdb.yaml
