@@ -1,0 +1,88 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: monitoring-base
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  generators:
+    - clusters: {}
+  template:
+    metadata:
+      name: "monitoring-base-{{name}}"
+    spec:
+      destination:
+        name: "{{name}}"
+        namespace: monitoring
+      project: default
+      source:
+        path: "monitoring-base/overlays/{{name}}"
+        repoURL: https://github.com/imjoseangel/gitops-argo.git
+        targetRevision: HEAD
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated:
+          prune: true
+          selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: monitoring-crds
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  generators:
+    - clusters: {}
+  template:
+    metadata:
+      name: "monitoring-crds-{{name}}"
+    spec:
+      destination:
+        name: "{{name}}"
+        namespace: monitoring
+      project: default
+      source:
+        path: charts/kube-prometheus-stack/crds/
+        repoURL: https://github.com/prometheus-community/helm-charts.git
+        targetRevision: kube-prometheus-stack-42.0.2
+        directory:
+          recurse: true
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+          - Replace=true
+        automated:
+          prune: true
+          selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: monitoring
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  generators:
+    - clusters: {}
+  template:
+    metadata:
+      name: "monitoring-{{name}}"
+    spec:
+      destination:
+        name: "{{name}}"
+        namespace: monitoring
+      project: default
+      source:
+        path: monitoring
+        repoURL: https://github.com/imjoseangel/gitops-argo.git
+        targetRevision: HEAD
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
